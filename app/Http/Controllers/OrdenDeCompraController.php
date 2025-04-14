@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OrdenDeCompra;
+use App\Models\Producto;
+use App\Models\Proveedor;
 use Illuminate\Http\Request;
 
 class OrdenDeCompraController extends Controller
@@ -9,14 +12,14 @@ class OrdenDeCompraController extends Controller
     public function index()
     {
         $ordenes = OrdenDeCompra::all();
-        return view('ordenes.index', compact('ordenes'));
+        return view('ordencompra.index', compact('ordenes'));
     }
 
     public function create()
     {
         $productos = Producto::all();
         $proveedores = Proveedor::all();
-        return view('ordenes.create', compact('productos', 'proveedores'));
+        return view('ordencompra.create', compact('productos', 'proveedores'));
     }
 
     public function store(Request $request)
@@ -35,14 +38,14 @@ class OrdenDeCompraController extends Controller
 
     public function show(OrdenDeCompra $orden)
     {
-        return view('ordenes.show', compact('orden'));
+        return view('ordencompra.show', compact('orden'));
     }
 
     public function edit(OrdenDeCompra $orden)
     {
         $productos = Producto::all();
         $proveedores = Proveedor::all();
-        return view('ordenes.edit', compact('orden', 'productos', 'proveedores'));
+        return view('ordencompra.edit', compact('orden', 'productos', 'proveedores'));
     }
 
     public function update(Request $request, OrdenDeCompra $orden)
@@ -65,4 +68,3 @@ class OrdenDeCompraController extends Controller
         return redirect()->route('ordenes.index');
     }
 }
-

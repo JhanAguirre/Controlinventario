@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrdenDeCompra extends Model
 {
+    protected $table = 'ordenes_de_compra'; // Nombre de la tabla en la base de datos
+
     protected $fillable = [
         'producto_id',
         'proveedor_id',
