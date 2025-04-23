@@ -2,18 +2,29 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrdenDeCompra extends Model
 {
-    protected $table = 'ordenes_de_compra'; // Nombre de la tabla en la base de datos
+    use HasFactory;
+
+    protected $table = 'ordenes_de_compra';
 
     protected $fillable = [
         'producto_id',
         'proveedor_id',
         'cantidad',
         'fecha_orden',
+        'fecha_entrega_estimada'
+    ];
+
+  
+    protected $dates = [
+        'fecha_orden',
         'fecha_entrega_estimada',
+        'created_at',
+        'updated_at'
     ];
 
     public function producto()
@@ -26,4 +37,3 @@ class OrdenDeCompra extends Model
         return $this->belongsTo(Proveedor::class);
     }
 }
-

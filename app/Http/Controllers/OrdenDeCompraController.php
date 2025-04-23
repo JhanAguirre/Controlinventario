@@ -11,7 +11,7 @@ class OrdenDeCompraController extends Controller
 {
     public function index()
     {
-        $ordenes = OrdenDeCompra::all();
+        $ordenes = OrdenDeCompra::with(['producto', 'proveedor'])->latest()->paginate(10);
         return view('ordencompra.index', compact('ordenes'));
     }
 
@@ -24,47 +24,61 @@ class OrdenDeCompraController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'producto_id' => 'required',
-            'proveedor_id' => 'required',
-            'cantidad' => 'required|integer',
+        $validated = $request->validate([
+            'producto_id' => 'required|exists:productos,id',
+            'proveedor_id' => 'required|exists:proveedores,id',
+            'cantidad' => 'required|integer|min:1',
             'fecha_orden' => 'required|date',
-            'fecha_entrega_estimada' => 'required|date',
+            'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha_orden'
         ]);
-
-        OrdenDeCompra::create($request->all());
-        return redirect()->route('ordenes.index');
+    
+       
+        $validated['fecha_orden'] = \Carbon\Carbon::parse($validated['fecha_orden'])->format('Y-m-d');
+        $validated['fecha_entrega_estimada'] = \Carbon\Carbon::parse($validated['fecha_entrega_estimada'])->format('Y-m-d');
+    
+        OrdenDeCompra::create($validated);
+    
+        return redirect()->route('ordenes.index')
+                        ->with('success', 'Orden de compra creada exitosamente.');
     }
 
-    public function show(OrdenDeCompra $orden)
-    {
-        return view('ordencompra.show', compact('orden'));
-    }
+    public function edit(OrdenDeCompra $ordene)
+{
+    $productos = Producto::all();
+    $proveedores = Proveedor::all();
+    
 
-    public function edit(OrdenDeCompra $orden)
-    {
-        $productos = Producto::all();
-        $proveedores = Proveedor::all();
-        return view('ordencompra.edit', compact('orden', 'productos', 'proveedores'));
-    }
+    $ordene->fecha_orden = \Carbon\Carbon::parse($ordene->fecha_orden)->format('Y-m-d');
+    $ordene->fecha_entrega_estimada = \Carbon\Carbon::parse($ordene->fecha_entrega_estimada)->format('Y-m-d');
+    
+    return view('ordencompra.edit', compact('ordene', 'productos', 'proveedores'));
+}
 
-    public function update(Request $request, OrdenDeCompra $orden)
-    {
-        $request->validate([
-            'producto_id' => 'required',
-            'proveedor_id' => 'required',
-            'cantidad' => 'required|integer',
-            'fecha_orden' => 'required|date',
-            'fecha_entrega_estimada' => 'required|date',
-        ]);
+public function update(Request $request, OrdenDeCompra $ordene)
+{
+    $validated = $request->validate([
+        'producto_id' => 'required|exists:productos,id',
+        'proveedor_id' => 'required|exists:proveedores,id',
+        'cantidad' => 'required|integer|min:1',
+        'fecha_orden' => 'required|date',
+        'fecha_entrega_estimada' => 'required|date|after_or_equal:fecha_orden'
+    ]);
 
-        $orden->update($request->all());
-        return redirect()->route('ordenes.index');
-    }
+    
+    $validated['fecha_orden'] = \Carbon\Carbon::parse($validated['fecha_orden'])->format('Y-m-d');
+    $validated['fecha_entrega_estimada'] = \Carbon\Carbon::parse($validated['fecha_entrega_estimada'])->format('Y-m-d');
 
-    public function destroy(OrdenDeCompra $orden)
+    $ordene->update($validated);
+
+    return redirect()->route('ordenes.index')
+                    ->with('success', 'Orden de compra actualizada exitosamente.');
+}
+
+    public function destroy(OrdenDeCompra $ordene)
     {
-        $orden->delete();
-        return redirect()->route('ordenes.index');
+        $ordene->delete();
+
+        return redirect()->route('ordenes.index')
+                         ->with('success', 'Orden de compra eliminada exitosamente.');
     }
 }

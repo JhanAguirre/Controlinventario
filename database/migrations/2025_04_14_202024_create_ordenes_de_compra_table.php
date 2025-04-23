@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('fecha_entrega_estimada');
             $table->timestamps();
 
-            // Relaciones
+          
             $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
             $table->foreign('proveedor_id')->references('id')->on('proveedores')->onDelete('cascade');
         });
