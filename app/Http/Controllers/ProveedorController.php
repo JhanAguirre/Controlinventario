@@ -37,7 +37,7 @@ class ProveedorController extends Controller
     $proveedor = Proveedor::findOrFail($id);
     return view('proveedores.show', compact('proveedor'));
 }
-    // Método edit modificado para mantener compatibilidad
+    
     public function edit($id)
     {
         $proveedor = Proveedor::findOrFail($id);
