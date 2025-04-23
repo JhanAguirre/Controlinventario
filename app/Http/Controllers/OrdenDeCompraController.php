@@ -42,6 +42,12 @@ class OrdenDeCompraController extends Controller
                         ->with('success', 'Orden de compra creada exitosamente.');
     }
 
+    public function show($id)
+    {
+        $orden = OrdenDeCompra::with(['producto', 'proveedor'])->findOrFail($id);
+        return view('ordencompra.show', compact('orden'));
+    }
+
     public function edit(OrdenDeCompra $ordene)
 {
     $productos = Producto::all();
