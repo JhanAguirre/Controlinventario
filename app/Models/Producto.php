@@ -13,7 +13,11 @@ class Producto extends Model
         'nombre',
         'descripcion',
         'precio',
-        'cantidad_en_stock',
+        'cantidad_en_stock'
     ];
-}
 
+    public function ordenesCompra()
+    {
+        return $this->hasMany(OrdenCompra::class);
+    }
+}

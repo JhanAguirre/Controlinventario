@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProveedorController;
 use Illuminate\Support\Facades\Route;   
@@ -19,7 +19,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('proveedores', ProveedorController::class);
     Route::resource('ordenes', OrdenDeCompraController::class);
-    Route::resource('productos', ProductoController::class)->middleware('auth');
+    Route::resource('productos', ProductoController::class);
 
 });
 
