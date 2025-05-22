@@ -4,14 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Control de Inventario') }}</title>
-    
-    <!-- Bootstrap CSS -->
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Font Awesome -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Estilos personalizados -->
+
     <style>
         body {
             background-color: #f8f9fa;
@@ -49,7 +46,6 @@
 </head>
 <body>
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white" style="width: 280px;">
             <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="fas fa-boxes me-2"></i>
@@ -81,6 +77,24 @@
                         Órdenes
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('bodegas.index') }}" class="nav-link {{ request()->is('bodegas*') ? 'active' : '' }}">
+                        <i class="fas fa-warehouse me-2"></i>
+                        Bodegas
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('inventario.index') }}" class="nav-link {{ request()->is('inventario*') ? 'active' : '' }}">
+                        <i class="fas fa-boxes me-2"></i>
+                        Inventario
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('reportes.crear') }}" class="nav-link {{ request()->is('reportes*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Reportes
+                    </a>
+                </li>
             </ul>
             <hr>
             <div class="dropdown">
@@ -103,13 +117,11 @@
             </div>
         </div>
 
-        <!-- Main content -->
         <div class="flex-grow-1 p-4">
             @yield('content')
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>
