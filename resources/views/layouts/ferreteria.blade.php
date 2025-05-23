@@ -116,10 +116,11 @@
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
+                        {{-- ELIMINADO: Enlace del Carrito de Compras de la barra superior --}}
                         @guest
                             @if (Route::has('ferreteria.login'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('ferreteria.login') }}">{{ __('Login') }}</a> {{-- Enlace actualizado --}}
+                                    <a class="nav-link" href="{{ route('ferreteria.login') }}">{{ __('Login') }}</a>
                                 </li>
                             @endif
                         @else
@@ -129,6 +130,9 @@
                                 </a>
 
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('ferreteria.profile.show') }}">
+                                        {{ __('Mi Cuenta') }}
+                                    </a>
                                     <a class="dropdown-item" href="{{ route('ferreteria.logout') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form-ferreteria').submit();">
@@ -158,22 +162,28 @@
                                     <a class="nav-link" href="{{ route('ferreteria.catalogo') }}"><i class="fas fa-home"></i> Inicio</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#"><i class="fas fa-boxes"></i> Todas las Categorías</a>
+                                    <a class="nav-link" href="{{ route('ferreteria.categorias') }}"><i class="fas fa-boxes"></i> Todas las Categorías</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#"><i class="fas fa-fire"></i> Ofertas del Día</a>
+                                    <a class="nav-link" href="{{ route('ferreteria.marcas') }}"><i class="fas fa-building"></i> Marcas</a>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#"><i class="fas fa-building"></i> Marcas</a>
-                                </li>
+                                {{-- "Ofertas del Día" ELIMINADO --}}
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('ferreteria.ayuda') }}"><i class="fas fa-question-circle"></i> Ayuda</a>
                                 </li>
                                 @auth
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#"><i class="fas fa-user-circle"></i> Mi Cuenta</a>
+                                    <a class="nav-link" href="{{ route('ferreteria.profile.show') }}"><i class="fas fa-user-circle"></i> Mi Cuenta</a>
                                 </li>
                                 @endauth
+                                {{-- AÑADIDO: Enlace para el Carrito en el Sidebar --}}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('ferreteria.cart.index') }}">
+                                        <i class="fas fa-shopping-cart"></i> Carrito
+                                        <span class="badge bg-danger ms-1" id="cart-count">0</span>
+                                    </a>
+                                </li>
+                                {{-- FIN AÑADIDO --}}
                             </ul>
                         </div>
                     </div>
@@ -190,5 +200,36 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Script para actualizar el contador del carrito
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateCartCount() {
+                fetch('{{ route('ferreteria.cart.count') }}') // Asegúrate de que esta ruta exista y devuelva { count: X }
+                    .then(response => response.json())
+                    .then(data => {
+                        const cartCountElement = document.getElementById('cart-count');
+                        if (cartCountElement) {
+                            cartCountElement.innerText = data.count;
+                        }
+                    })
+                    .catch(error => console.error('Error al obtener el conteo del carrito:', error));
+            }
+
+            // Llama a la función al cargar la página
+            updateCartCount();
+
+            // Puedes añadir listeners para los formularios de añadir/actualizar/eliminar
+            // para llamar a updateCartCount() después de una operación exitosa.
+            // Por ejemplo, usando un evento personalizado o interceptando la respuesta de la form.
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    // Si la acción es de carrito, actualiza el contador después de un pequeño retraso
+                    if (this.action.includes('/ferreteria/cart')) { // Asegúrate de que la URL coincida con tus rutas de carrito
+                        setTimeout(updateCartCount, 500); // Pequeño retraso para que la sesión se actualice
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

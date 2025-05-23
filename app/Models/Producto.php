@@ -22,6 +22,17 @@ class Producto extends Model
         return $this->hasMany(OrdenCompra::class);
     }
 
+    public function category()
+{
+    return $this->belongsTo(Category::class); // Asumiendo que la FK es category_id
+}
+
+public function brand()
+{
+    return $this->belongsTo(Brand::class); // Asumiendo que la FK es brand_id
+}
+
+
     public function bodegas()
     {
         return $this->belongsToMany(Bodega::class, 'bodega_producto')
