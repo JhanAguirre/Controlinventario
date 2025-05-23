@@ -3,20 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // Importa la fachada de autenticación
-use Illuminate\Support\Facades\Log; // Para logging
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash; // Agrega esta línea para usar Hash
+use App\Models\User; // Agrega esta línea para usar el modelo User
 
 class UserAuthController extends Controller
 {
     /**
      * Muestra el formulario de login para usuarios de la ferretería.
-     * (Aunque el formulario ya está en el dashboard, esta ruta podría ser para una página de login dedicada)
      *
      * @return \Illuminate\View\View
      */
     public function showLoginForm()
     {
-        return view('auth_ferreteria.login'); // Puedes crear esta vista si quieres una página de login dedicada
+        return view('ferreteria.login'); // Ahora devuelve la nueva vista dedicada
     }
 
     /**
@@ -34,15 +35,11 @@ class UserAuthController extends Controller
             'password' => ['required'],
         ]);
 
-        // Intentar autenticar al usuario
-        // Por defecto, Auth::attempt() usa el guard 'web'.
-        // Si tienes un guard diferente para usuarios de ferretería, deberías especificarlo:
-        // Auth::guard('ferreteria_guard')->attempt($credentials)
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
             Log::info('UserAuthController: login() - User authenticated successfully: ' . $request->email);
-            // Redirigir al usuario a la página principal de la ferretería o a donde desees
+            // Redirigir al usuario a la página principal de la ferretería (catálogo)
             return redirect()->intended(route('ferreteria.catalogo'))->with('success', '¡Bienvenido a la Ferretería!');
         }
 
@@ -60,12 +57,52 @@ class UserAuthController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout(); 
+        Auth::logout();
 
-        $request->session()->invalidate(); // Invalida la sesión actual
-        $request->session()->regenerateToken(); // Regenera el token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         Log::info('UserAuthController: logout() - User logged out.');
-        return redirect('/')->with('success', 'Has cerrado sesión correctamente.'); // Redirige a la página de inicio
+        return redirect('/')->with('success', 'Has cerrado sesión correctamente.');
+    }
+
+    /**
+     * Muestra el formulario de registro para nuevos usuarios de la ferretería.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showRegistrationForm()
+    {
+        return view('ferreteria.register');
+    }
+
+    /**
+     * Procesa los datos del formulario de registro y crea un nuevo usuario.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function register(Request $request)
+    {
+        Log::info('UserAuthController: register() - Attempting registration for email: ' . $request->email);
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'], // 'confirmed' asegura que password_confirmation coincida
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Autenticar al usuario recién registrado
+        Auth::login($user);
+
+        Log::info('UserAuthController: register() - User registered and logged in successfully: ' . $user->email);
+
+        return redirect(route('ferreteria.catalogo'))->with('success', '¡Registro exitoso! Bienvenido a la Ferretería.');
     }
 }

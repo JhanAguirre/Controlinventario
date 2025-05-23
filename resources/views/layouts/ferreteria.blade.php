@@ -68,27 +68,22 @@
             font-weight: 500;
             margin-right: 15px; /* Espacio entre los enlaces */
             transition: color 0.3s ease;
-            /* Aseguramos que se muestren correctamente */
-            padding: 0.5rem 0.75rem; /* Ajuste de padding */
+            padding: 0.5rem 0.75rem;
         }
         .navbar-nav .nav-item .nav-link-info:hover {
             color: #007bff; /* Color azul al pasar el ratón */
         }
-        /* Asegurar que el navbar-nav me-auto se muestre como flex en md y superiores */
         .navbar-collapse .navbar-nav.me-auto {
-            /* Eliminamos display: flex y flex-direction: row de aquí, ya que d-md-flex lo manejará */
-            align-items: center; /* Centra verticalmente los ítems */
+            align-items: center;
         }
-
-        /* Estilos para el botón de alternar (toggler) en pantallas pequeñas */
         @media (max-width: 767.98px) {
             .navbar-collapse .navbar-nav.me-auto {
-                flex-direction: column; /* Vuelve a columna en pantallas pequeñas */
-                align-items: flex-start; /* Alinea a la izquierda en columna */
+                flex-direction: column;
+                align-items: flex-start;
             }
             .navbar-nav .nav-item .nav-link-info {
-                margin-right: 0; /* Elimina el margen derecho en móviles */
-                width: 100%; /* Ocupa todo el ancho disponible */
+                margin-right: 0;
+                width: 100%;
             }
         }
     </style>
@@ -104,9 +99,8 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                {{-- Añadimos d-md-flex para forzar la visibilidad en pantallas medianas y grandes --}}
                 <div class="collapse navbar-collapse d-md-flex" id="navbarSupportedContent">
-                    <ul class="navbar-nav me-auto mb-2 mb-md-0"> {{-- Agregamos clases de margen para espaciado --}}
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
                         <li class="nav-item">
                             <a class="nav-link nav-link-info" href="{{ route('quienes-somos') }}">Quiénes Somos</a>
                         </li>
@@ -125,7 +119,7 @@
                         @guest
                             @if (Route::has('ferreteria.login'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('ferreteria.login') }}">{{ __('Login') }}</a>
+                                    <a class="nav-link" href="{{ route('ferreteria.login') }}">{{ __('Login') }}</a> {{-- Enlace actualizado --}}
                                 </li>
                             @endif
                         @else
@@ -173,7 +167,7 @@
                                     <a class="nav-link" href="#"><i class="fas fa-building"></i> Marcas</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('ferreteria.ayuda') }}"><i class="fas fa-question-circle"></i> Ayuda</a> {{-- Enlace actualizado --}}
+                                    <a class="nav-link" href="{{ route('ferreteria.ayuda') }}"><i class="fas fa-question-circle"></i> Ayuda</a>
                                 </li>
                                 @auth
                                 <li class="nav-item">

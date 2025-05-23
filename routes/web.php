@@ -7,7 +7,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\InventarioController;
-use App\Http\Controllers\UserAuthController;
+use App\Http\Controllers\UserAuthController; // Asegúrate de que esta línea esté presente
 use App\Http\Controllers\CatalogoController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     // Rutas para el Inventario
     Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
     Route::get('/inventario/{producto}', [InventarioController::class, 'show'])->name('inventario.show');
-    Route::put('/inventario/{producto}', [InventarioController::class, 'update'])->name('inventario.update'); // Corregido: Route::put
+    Route::put('/inventario/{producto}', [InventarioController::class, 'update'])->name('inventario.update');
     Route::get('/inventario/{producto}/asignar', [InventarioController::class, 'asignar'])->name('inventario.asignar');
     Route::post('/inventario/{producto}/asignar', [InventarioController::class, 'guardarAsignacion'])->name('inventario.guardarAsignacion');
 });
@@ -64,7 +64,11 @@ Route::prefix('ferreteria')->group(function () {
     Route::get('/catalogo', [CatalogoController::class, 'index'])->name('ferreteria.catalogo');
     Route::get('/ayuda', [CatalogoController::class, 'showAyudaPage'])->name('ferreteria.ayuda');
 
-    // Nuevas rutas para las páginas informativas (versión USUARIO)
+    // Nuevas rutas para el REGISTRO de usuarios de ferretería
+    Route::get('/register', [UserAuthController::class, 'showRegistrationForm'])->name('ferreteria.register');
+    Route::post('/register', [UserAuthController::class, 'register'])->name('ferreteria.register.post');
+
+    // Rutas existentes para las páginas informativas (versión USUARIO)
     Route::get('/quienes-somos-user', function () {
         return view('ferreteria.quienes-somos');
     })->name('ferreteria.quienes-somos');
