@@ -90,7 +90,7 @@
                             <i class="fas fa-trash-alt mr-2"></i> Vaciar Carrito
                         </button>
                     </form>
-                    <a href="#" class="btn btn-success">
+                    <a href="{{ route('ferreteria.checkout') }}" class="btn btn-success"> {{-- ¡ENLACE ACTUALIZADO! --}}
                         <i class="fas fa-money-check-alt mr-2"></i> Proceder al Pago
                     </a>
                 </div>
@@ -101,7 +101,7 @@
         // Script para actualizar el contador del carrito en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
             function updateCartCount() {
-                fetch('{{ route('ferreteria.cart.count') }}') // Asegúrate de que esta ruta exista y devuelva { count: X }
+                fetch('{{ route('ferreteria.cart.count') }}')
                     .then(response => response.json())
                     .then(data => {
                         const cartCountElement = document.getElementById('cart-count');
@@ -112,17 +112,12 @@
                     .catch(error => console.error('Error al obtener el conteo del carrito:', error));
             }
 
-            // Llama a la función al cargar la página y cada vez que se actualice el carrito
             updateCartCount();
 
-            // Puedes añadir listeners para los formularios de añadir/actualizar/eliminar
-            // para llamar a updateCartCount() después de una operación exitosa.
-            // Por ejemplo, usando un evento personalizado o interceptando la respuesta de la form.
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function(event) {
-                    // Si la acción es de carrito, actualiza el contador después de un pequeño retraso
-                    if (this.action.includes('/cart')) {
-                        setTimeout(updateCartCount, 500); // Pequeño retraso para que la sesión se actualice
+                    if (this.action.includes('/ferreteria/cart')) {
+                        setTimeout(updateCartCount, 500);
                     }
                 });
             });

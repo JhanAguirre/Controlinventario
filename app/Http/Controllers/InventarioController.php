@@ -2,24 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bodega;
 use App\Models\Producto;
+use App\Models\Bodega;
+use App\Models\BodegaProducto; // ¡ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ PRESENTE!
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class InventarioController extends Controller
 {
     /**
-     * Muestra el inventario general de todos los productos con su stock total.
+     * Muestra el inventario consolidado de productos en todas las bodegas.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        Log::info('InventarioController: index() - Iniciando...');
-
-        $productos = Producto::select('productos.*')
-            ->leftJoin('bodega_producto', 'productos.id', '=', 'bodega_producto.producto_id')
-            ->selectRaw('SUM(bodega_producto.cantidad_en_bodega) as total_cantidad_en_bodega')
+        // Obtener todos los productos y sumar sus cantidades en las bodegas
+        $productos = Producto::leftJoin('bodega_producto', 'productos.id', '=', 'bodega_producto.producto_id')
+            ->select(
+                'productos.id',
+                'productos.nombre',
+                'productos.descripcion',
+                'productos.precio',
+                'productos.cantidad_en_stock', // Cantidad inicial o stock base
+                'productos.created_at',
+                'productos.updated_at',
+                'productos.category_id', // Añadido al SELECT
+                'productos.brand_id',    // Añadido al SELECT
+                DB::raw('SUM(bodega_producto.cantidad_en_bodega) as total_cantidad_en_bodega')
+            )
             ->groupBy(
                 'productos.id',
                 'productos.nombre',
@@ -27,133 +39,73 @@ class InventarioController extends Controller
                 'productos.precio',
                 'productos.cantidad_en_stock',
                 'productos.created_at',
-                'productos.updated_at'
+                'productos.updated_at',
+                'productos.category_id', // Añadido al GROUP BY
+                'productos.brand_id'     // Añadido al GROUP BY
             )
-            ->paginate(10);
-
-        Log::info('InventarioController: index() - Productos obtenidos.');
+            ->orderBy('productos.nombre')
+            ->paginate(10); // Paginación para el inventario
 
         return view('inventario.index', compact('productos'));
     }
 
     /**
-     * Muestra el inventario detallado de un producto específico por bodega.
+     * Muestra los detalles de inventario de un producto específico en cada bodega.
+     *
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\View\View
      */
     public function show(Producto $producto)
     {
-        Log::info('InventarioController: show() - Iniciando para Producto ID: ' . $producto->id);
-
-        $producto->load([
-            'bodegas' => function ($query) {
-                $query->select('bodegas.id', 'bodegas.nombre')
-                      ->withPivot('cantidad_en_bodega');
-            }
-        ]);
-        $bodegas = Bodega::orderBy('nombre')->get(['id', 'nombre']);
-
-        Log::info('InventarioController: show() - Bodegas y Producto cargados.');
-
-        return view('inventario.show', compact('producto', 'bodegas'));
+        $bodegasConStock = $producto->bodegas()->withPivot('cantidad_en_bodega')->get();
+        return view('inventario.show', compact('producto', 'bodegasConStock'));
     }
 
     /**
-     * Actualiza la cantidad de un producto en una bodega específica.
-     */
-    public function update(Request $request, Producto $producto)
-    {
-        Log::info('InventarioController: update() - Iniciando para Producto ID: ' . $producto->id);
-        Log::info('InventarioController: update() - Request data: ' . json_encode($request->all()));
-
-        $request->validate([
-            'bodega_id' => 'required|exists:bodegas,id',
-            'cantidad_en_bodega' => 'required|integer|min:0',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $producto->bodegas()->syncWithoutDetaching([
-                $request->bodega_id => ['cantidad_en_bodega' => $request->cantidad_en_bodega],
-            ]);
-
-            $producto->loadSum('bodegas', 'cantidad_en_bodega');
-            $producto->cantidad_en_stock = $producto->bodegas_sum_cantidad_en_bodega;
-            $producto->save();
-
-            DB::commit();
-
-            Log::info('InventarioController: update() - Inventario actualizado exitosamente.');
-
-            return redirect()->route('inventario.show', $producto)->with('success', 'Inventario actualizado exitosamente.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('InventarioController: update() - Error al actualizar: ' . $e->getMessage());
-            return back()->with('error', 'Error al actualizar el inventario: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Muestra el formulario para asignar productos a bodegas.
+     * Muestra el formulario para asignar o ajustar el stock de un producto en una bodega.
+     *
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\View\View
      */
     public function asignar(Producto $producto)
-{
-    Log::info('InventarioController: asignar() - Iniciando para Producto ID: ' . $producto->id);
-
-    $bodegas = Bodega::orderBy('nombre')->get(['id', 'nombre']);
-    $producto->load([
-        'bodegas' => function ($query) {
-            $query->select('bodegas.id', 'bodegas.nombre')
-                  ->withPivot('cantidad_en_bodega');
-        }
-    ]);
-
-    Log::info('InventarioController: asignar() - Bodegas y Producto cargados.');
-
-    return view('inventario.asignar', compact('producto', 'bodegas'));
-}
+    {
+        $bodegas = Bodega::all();
+        // Aquí es donde se usa BodegaProducto
+        $bodegaProducto = BodegaProducto::where('producto_id', $producto->id)->get()->keyBy('bodega_id');
+        return view('inventario.asignar', compact('producto', 'bodegas', 'bodegaProducto'));
+    }
 
     /**
-     * Guarda la asignación de productos a bodegas y sus cantidades.
+     * Guarda la asignación o ajuste del stock de un producto en una bodega.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Producto  $producto
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function guardarAsignacion(Request $request, Producto $producto)
-{
-    Log::info('InventarioController: guardarAsignacion() - Iniciando para Producto ID: ' . $producto->id);
-    Log::info('InventarioController: guardarAsignacion() - Request data: ' . json_encode($request->all()));
+    {
+        $request->validate([
+            'bodegas' => 'required|array',
+            'bodegas.*.cantidad' => 'nullable|integer|min:0',
+        ]);
 
-    $request->validate([
-        'bodegas' => 'required|array',
-        'bodegas.*.bodega_id' => 'required|exists:bodegas,id',
-        'bodegas.*.cantidad' => 'required|integer|min:0',
-    ]);
+        foreach ($request->input('bodegas') as $bodegaId => $data) {
+            $cantidad = $data['cantidad'] ?? 0;
 
-    try {
-        DB::beginTransaction();
-
-        $syncData = [];
-        foreach ($request->bodegas as $bodegaData) {
-            $syncData[$bodegaData['bodega_id']] = ['cantidad_en_bodega' => $bodegaData['cantidad']];
+            if ($cantidad > 0) {
+                // Aquí también se usa BodegaProducto
+                BodegaProducto::updateOrCreate(
+                    ['producto_id' => $producto->id, 'bodega_id' => $bodegaId],
+                    ['cantidad_en_bodega' => $cantidad]
+                );
+            } else {
+                // Y aquí
+                BodegaProducto::where('producto_id', $producto->id)
+                              ->where('bodega_id', $bodegaId)
+                              ->delete();
+            }
         }
 
-        Log::info('InventarioController: guardarAsignacion() - Sync data: ' . json_encode($syncData));
-
-        $producto->bodegas()->sync($syncData);
-
-        $producto->loadSum('bodegas', 'cantidad_en_bodega');
-        $producto->cantidad_en_stock = $producto->bodegas_sum_cantidad_en_bodega;
-        $producto->save();
-
-        DB::commit();
-
-        Log::info('InventarioController: guardarAsignacion() - Asignación guardada exitosamente.');
-
-        return redirect()->route('inventario.index')->with('success', 'Inventario asignado a bodegas exitosamente.');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('InventarioController: guardarAsignacion() - Error al guardar asignación: ' . $e->getMessage());
-        return back()->with('error', 'Error al guardar la asignación: ' . $e->getMessage());
+        return redirect()->route('inventario.index')->with('success', 'Stock de ' . $producto->nombre . ' actualizado correctamente.');
     }
-}
 }

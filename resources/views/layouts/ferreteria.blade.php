@@ -19,6 +19,12 @@
     <style>
         body {
             background-color: #f0f2f5; /* Un gris claro para el fondo general */
+            /* ESTILOS DE FONDO APLICADOS AL BODY */
+            background-image: url('https://img.freepik.com/vector-premium/iconos-dibujos-animados-herramientas-ferreteria_178650-3220.jpg?w=360');
+            background-size: cover; /* Ajusta la imagen para cubrir todo el contenedor */
+            background-position: center; /* Centra la imagen */
+            background-repeat: repeat; /* Repite la imagen si es necesario */
+            background-attachment: fixed; /* Opcional: para que la imagen de fondo no se desplace con el scroll */
         }
         .sidebar {
             background-color: #343a40; /* Gris oscuro, como metal o herramientas */
@@ -116,7 +122,6 @@
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
-                        {{-- ELIMINADO: Enlace del Carrito de Compras de la barra superior --}}
                         @guest
                             @if (Route::has('ferreteria.login'))
                                 <li class="nav-item">
@@ -167,7 +172,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('ferreteria.marcas') }}"><i class="fas fa-building"></i> Marcas</a>
                                 </li>
-                                {{-- "Ofertas del Día" ELIMINADO --}}
+                                {{-- NUEVO ENLACE A BODEGAS --}}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('ferreteria.bodegas.index') }}"><i class="fas fa-warehouse"></i> Bodegas</a>
+                                </li>
+                                {{-- FIN NUEVO ENLACE A BODEGAS --}}
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('ferreteria.ayuda') }}"><i class="fas fa-question-circle"></i> Ayuda</a>
                                 </li>
@@ -176,14 +185,19 @@
                                     <a class="nav-link" href="{{ route('ferreteria.profile.show') }}"><i class="fas fa-user-circle"></i> Mi Cuenta</a>
                                 </li>
                                 @endauth
-                                {{-- AÑADIDO: Enlace para el Carrito en el Sidebar --}}
                                 <li class="nav-item">
                                     <a class="nav-link" href="{{ route('ferreteria.cart.index') }}">
                                         <i class="fas fa-shopping-cart"></i> Carrito
                                         <span class="badge bg-danger ms-1" id="cart-count">0</span>
                                     </a>
                                 </li>
-                                {{-- FIN AÑADIDO --}}
+                                {{-- Nuevo enlace a la parte de administración --}}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('dashboard') }}">
+                                        <i class="fas fa-user-shield"></i> Ir a Admin
+                                    </a>
+                                </li>
+                                {{-- Fin nuevo enlace --}}
                             </ul>
                         </div>
                     </div>
@@ -204,7 +218,7 @@
         // Script para actualizar el contador del carrito
         document.addEventListener('DOMContentLoaded', function() {
             function updateCartCount() {
-                fetch('{{ route('ferreteria.cart.count') }}') // Asegúrate de que esta ruta exista y devuelva { count: X }
+                fetch('{{ route('ferreteria.cart.count') }}')
                     .then(response => response.json())
                     .then(data => {
                         const cartCountElement = document.getElementById('cart-count');
@@ -215,17 +229,12 @@
                     .catch(error => console.error('Error al obtener el conteo del carrito:', error));
             }
 
-            // Llama a la función al cargar la página
             updateCartCount();
 
-            // Puedes añadir listeners para los formularios de añadir/actualizar/eliminar
-            // para llamar a updateCartCount() después de una operación exitosa.
-            // Por ejemplo, usando un evento personalizado o interceptando la respuesta de la form.
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function(event) {
-                    // Si la acción es de carrito, actualiza el contador después de un pequeño retraso
-                    if (this.action.includes('/ferreteria/cart')) { // Asegúrate de que la URL coincida con tus rutas de carrito
-                        setTimeout(updateCartCount, 500); // Pequeño retraso para que la sesión se actualice
+                    if (this.action.includes('/ferreteria/cart')) {
+                        setTimeout(updateCartCount, 500);
                     }
                 });
             });

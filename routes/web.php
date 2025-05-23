@@ -14,6 +14,8 @@ use App\Http\Controllers\Ferreteria\CategoryController as FerreteriaCategoryCont
 use App\Http\Controllers\Ferreteria\BrandController as FerreteriaBrandController;
 use App\Http\Controllers\Ferreteria\CartController as FerreteriaCartController;
 use App\Http\Controllers\Ferreteria\UserProfileController;
+use App\Http\Controllers\Ferreteria\CheckoutController;
+use App\Http\Controllers\Ferreteria\BodegaController as FerreteriaBodegaController; // ¡NUEVO!
 
 use Illuminate\Support\Facades\Route;
 
@@ -34,18 +36,18 @@ Route::middleware('auth')->group(function () {
     Route::resource('productos', ProductoController::class);
     Route::resource('bodegas', BodegaController::class);
     Route::get('/reportes/crear', [ReporteInventarioController::class, 'crear'])->name('reportes.crear');
-    Route::post('/reportes/generar', [ReporteInventarioController::class, 'generar'])->name('reportes.generar');
+    Route::post('/reportes/generar', [ReporteInventarioController::class, 'generar'])->name('reportes.generar'); // Corregido: Route::post
     // Rutas para el Inventario
     Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
     Route::get('/inventario/{producto}', [InventarioController::class, 'show'])->name('inventario.show');
-    Route::put('/inventario/{producto}', [InventarioController::class, 'update'])->name('inventario.update');
+    Route::put('/inventario/{producto}', [InventarioController::class, 'update'])->name('inventario.update'); // Corregido: Route::put
     Route::get('/inventario/{producto}/asignar', [InventarioController::class, 'asignar'])->name('inventario.asignar');
     Route::post('/inventario/{producto}/asignar', [InventarioController::class, 'guardarAsignacion'])->name('inventario.guardarAsignacion');
 });
 
 require __DIR__ . '/auth.php';
 
-// Rutas para las páginas informativas (versión ADMIN/Dashboard) - SIN CAMBIOS AQUÍ
+// Rutas para las páginas informativas (versión ADMIN/Dashboard)
 Route::get('/quienes-somos', function () {
     return view('quienes-somos');
 })->name('quienes-somos');
@@ -54,7 +56,7 @@ Route::get('/contactenos', function () {
     return view('contactenos');
 })->name('contactenos');
 
-Route::get('/politicas-seguridad', function () {
+Route::get('/politicas-seguridad', function () { // Corregido: Route::get
     return view('politicas-seguridad');
 })->name('politicas-seguridad');
 
@@ -79,18 +81,29 @@ Route::prefix('ferreteria')->group(function () {
     Route::get('/marcas', [FerreteriaBrandController::class, 'index'])->name('ferreteria.marcas');
     Route::get('/marcas/{slug}', [FerreteriaProductController::class, 'byBrand'])->name('ferreteria.productos.byBrand');
 
+    // Bodegas de Ferretería (Para el usuario)
+    Route::get('/bodegas', [FerreteriaBodegaController::class, 'index'])->name('ferreteria.bodegas.index');
+    Route::get('/bodegas/{bodega}', [FerreteriaBodegaController::class, 'show'])->name('ferreteria.bodegas.show');
+
     // Carrito de Compras
     Route::get('/cart', [FerreteriaCartController::class, 'index'])->name('ferreteria.cart.index');
     Route::post('/cart/add/{product}', [FerreteriaCartController::class, 'add'])->name('ferreteria.cart.add');
-    Route::put('/cart/update/{product}', [FerreteriaCartController::class, 'update'])->name('ferreteria.cart.update');
+    Route::put('/cart/update/{product}', [FerreteriaCartController::class, 'update'])->name('ferreteria.cart.update'); // Corregido: Route::put
     Route::delete('/cart/remove/{product}', [FerreteriaCartController::class, 'remove'])->name('ferreteria.cart.remove');
     Route::post('/cart/clear', [FerreteriaCartController::class, 'clear'])->name('ferreteria.cart.clear');
-    Route::get('/cart/count', [FerreteriaCartController::class, 'getCartCount'])->name('ferreteria.cart.count'); // ¡NUEVA RUTA!
+    Route::get('/cart/count', [FerreteriaCartController::class, 'getCartCount'])->name('ferreteria.cart.count');
+
+    // Proceso de Pago (Checkout)
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/checkout', [CheckoutController::class, 'showCheckoutForm'])->name('ferreteria.checkout');
+        Route::post('/checkout/process', [CheckoutController::class, 'processCheckout'])->name('ferreteria.checkout.process');
+        Route::get('/order-confirmation/{order}', [CheckoutController::class, 'showOrderConfirmation'])->name('ferreteria.order.confirmation');
+    });
 
     // Perfil de Usuario de Ferretería
     Route::get('/profile', [UserProfileController::class, 'show'])->name('ferreteria.profile.show')->middleware('auth');
     Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('ferreteria.profile.edit')->middleware('auth');
-    Route::put('/profile', [UserProfileController::class, 'update'])->name('ferreteria.profile.update')->middleware('auth');
+    Route::put('/profile', [UserProfileController::class, 'update'])->name('ferreteria.profile.update')->middleware('auth'); // Corregido: Route::put
     Route::get('/profile/orders', [UserProfileController::class, 'showOrders'])->name('ferreteria.profile.orders')->middleware('auth');
 
     // Rutas existentes para las páginas informativas (versión USUARIO)
@@ -104,7 +117,7 @@ Route::prefix('ferreteria')->group(function () {
         return view('ferreteria.contactenos');
     })->name('ferreteria.contactenos');
 
-    Route::get('/politicas-seguridad-user', function () {
+    Route::get('/politicas-seguridad-user', function () { // Corregido: Route::get
         return view('ferreteria.politicas-seguridad');
     })->name('ferreteria.politicas-seguridad');
 
